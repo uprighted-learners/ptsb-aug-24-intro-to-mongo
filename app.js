@@ -1,6 +1,6 @@
 require("dotenv").config()
 const express = require("express")
-const { MongoClient } = require("mongodb")
+const { MongoClient, ObjectId } = require("mongodb")
 const app = express()
 
 const PORT = process.env.PORT
@@ -41,13 +41,45 @@ app.post("/create", async (req, res) => {
 })
 
 /* 
-    ? Challenge
-    * return all values from the user collection back to the client
-    * this will require a get request
+? Challenge
+* return all values from the user collection back to the client
+* this will require a get request
 */
 
-app.get("/", async (req, res) => {
+app.get("/", async (_, res) => {
+    try {
+        const db = await dbConnect()
+        const foundAll = await db.find({}).toArray()
 
+        res.status(200).json(foundAll)
+
+
+    } catch(err) {
+        console.error(err)
+        res.status(500).json({
+            error: `${err}`
+        })
+    }
+})
+
+app.get("/:id", async (req, res) => {
+    try {
+        const { id } = req.params
+        
+        const db = await dbConnect()
+
+        const foundItem = await db.findOne({ _id: new ObjectId(id) })
+        
+        if (!foundItem) throw new Error("Nothing found")
+
+        res.status(200).json(foundItem)
+
+    } catch(err) {
+        console.error(err)
+        res.status(500).json({
+            error: `${err}`
+        })
+    }
 })
 
 app.listen(PORT, () => {
